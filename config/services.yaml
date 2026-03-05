@@ -1,0 +1,27 @@
+parameters:
+    telegram_bot_username: '%env(TELEGRAM_BOT_USERNAME)%'
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    App\Service\OpenAiImageService:
+        arguments:
+            $httpClient: '@openai.client'
+
+    App\Service\TelegramService:
+        arguments:
+            $httpClient: '@telegram.client'
+            $botToken: '%env(TELEGRAM_BOT_TOKEN)%'
+
+    App\Service\StickerService:
+        arguments:
+            $botUsername: '%telegram_bot_username%'

@@ -1,0 +1,17 @@
+framework:
+    secret: '%env(APP_SECRET)%'
+    http_method_override: false
+    handle_all_throwables: true
+
+    php_errors:
+        log: true
+
+    http_client:
+        scoped_clients:
+            openai.client:
+                base_uri: 'https://api.openai.com/v1/'
+                headers:
+                    Authorization: 'Bearer %env(OPENAI_API_KEY)%'
+                    Content-Type: 'application/json'
+            telegram.client:
+                base_uri: 'https://api.telegram.org/bot%env(TELEGRAM_BOT_TOKEN)%/'
