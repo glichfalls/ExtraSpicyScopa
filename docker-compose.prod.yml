@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/${GITHUB_REPO}:latest
+    image: ghcr.io/glichfalls/extraspicystickers:latest
     container_name: sticker-bot-app
     restart: unless-stopped
     volumes:
