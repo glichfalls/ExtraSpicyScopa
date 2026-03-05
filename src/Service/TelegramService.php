@@ -8,7 +8,6 @@ class TelegramService
 {
     public function __construct(
         private readonly HttpClientInterface $httpClient,
-        private readonly string $botToken,
     ) {
     }
 

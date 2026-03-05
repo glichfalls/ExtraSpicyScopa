@@ -20,7 +20,6 @@ services:
     App\Service\TelegramService:
         arguments:
             $httpClient: '@telegram.client'
-            $botToken: '%env(TELEGRAM_BOT_TOKEN)%'
 
     App\Service\StickerService:
         arguments:
