@@ -43,7 +43,7 @@ The bot will:
 1. Create an Ubuntu instance on Oracle Cloud
 2. SSH in and run:
    ```bash
-   curl -sSL https://raw.githubusercontent.com/glichfalls/telegram-sticker-bot/master/deploy/setup-from-github.sh | bash -s glichfalls/telegram-sticker-bot
+   curl -sSL https://raw.githubusercontent.com/glichfalls/ExtraSpicyStickers/master/deploy/setup-from-github.sh | bash -s glichfalls/ExtraSpicyStickers
    ```
 3. Edit `/opt/sticker-bot/.env.local` with your tokens
 4. Start: `docker compose -f docker-compose.prod.yml up -d`
