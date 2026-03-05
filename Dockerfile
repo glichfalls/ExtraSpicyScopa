@@ -35,6 +35,9 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
+# Set production environment
+ENV APP_ENV=prod
+
 # Copy application files
 COPY . .
 
