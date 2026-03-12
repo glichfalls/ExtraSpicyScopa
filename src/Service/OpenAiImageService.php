@@ -55,66 +55,18 @@ class OpenAiImageService
         $stylePrompt = self::STYLES[$style]['prompt'] ?? self::STYLES['default']['prompt'];
         $fullPrompt = "Turn this into a sticker: $prompt. $stylePrompt";
 
-        // Convert to RGBA PNG (Telegram sends JPEG, dall-e-2 requires RGBA PNG < 4MB)
-        $src = imagecreatefromstring($imageData);
-        if ($src === false) {
-            throw new \RuntimeException('Failed to read uploaded image');
-        }
-        $w = imagesx($src);
-        $h = imagesy($src);
-        $scale = ($w > 1024 || $h > 1024) ? min(1024 / $w, 1024 / $h) : 1.0;
-        $nw = (int) ($w * $scale);
-        $nh = (int) ($h * $scale);
-
-        $rgba = imagecreatetruecolor($nw, $nh);
-        imagealphablending($rgba, false);
-        imagesavealpha($rgba, true);
-        $transparent = imagecolorallocatealpha($rgba, 0, 0, 0, 127);
-        imagefill($rgba, 0, 0, $transparent);
-        imagecopyresampled($rgba, $src, 0, 0, 0, 0, $nw, $nh, $w, $h);
-        imagedestroy($src);
-
-        ob_start();
-        imagepng($rgba);
-        $pngData = ob_get_clean();
-
-        // Create fully transparent mask (= edit everything, use image as reference)
-        $mask = imagecreatetruecolor($nw, $nh);
-        imagealphablending($mask, false);
-        imagesavealpha($mask, true);
-        $maskTransparent = imagecolorallocatealpha($mask, 0, 0, 0, 127);
-        imagefill($mask, 0, 0, $maskTransparent);
-        ob_start();
-        imagepng($mask);
-        $maskData = ob_get_clean();
-        imagedestroy($mask);
-        imagedestroy($rgba);
-
-        $boundary = bin2hex(random_bytes(16));
-
-        $body = "--$boundary\r\n";
-        $body .= "Content-Disposition: form-data; name=\"model\"\r\n\r\ndall-e-2\r\n";
-        $body .= "--$boundary\r\n";
-        $body .= "Content-Disposition: form-data; name=\"prompt\"\r\n\r\n$fullPrompt\r\n";
-        $body .= "--$boundary\r\n";
-        $body .= "Content-Disposition: form-data; name=\"size\"\r\n\r\n512x512\r\n";
-        $body .= "--$boundary\r\n";
-        $body .= "Content-Disposition: form-data; name=\"response_format\"\r\n\r\nb64_json\r\n";
-        $body .= "--$boundary\r\n";
-        $body .= "Content-Disposition: form-data; name=\"image\"; filename=\"image.png\"\r\n";
-        $body .= "Content-Type: image/png\r\n\r\n";
-        $body .= $pngData . "\r\n";
-        $body .= "--$boundary\r\n";
-        $body .= "Content-Disposition: form-data; name=\"mask\"; filename=\"mask.png\"\r\n";
-        $body .= "Content-Type: image/png\r\n\r\n";
-        $body .= $maskData . "\r\n";
-        $body .= "--$boundary--\r\n";
+        $imageBase64 = base64_encode($imageData);
 
         $response = $this->httpClient->request('POST', 'images/edits', [
-            'headers' => [
-                'Content-Type' => "multipart/form-data; boundary=$boundary",
+            'json' => [
+                'model' => 'gpt-image-1',
+                'prompt' => $fullPrompt,
+                'image' => [
+                    'type' => 'base64',
+                    'data' => $imageBase64,
+                ],
+                'size' => '1024x1024',
             ],
-            'body' => $body,
         ]);
 
         $statusCode = $response->getStatusCode();
