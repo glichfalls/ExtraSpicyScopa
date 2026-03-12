@@ -6,6 +6,7 @@ use App\Repository\UserRepository;
 use App\Service\OpenAiImageService;
 use App\Service\StickerService;
 use BoShurik\TelegramBotBundle\Telegram\Command\AbstractCommand;
+use BoShurik\TelegramBotBundle\Telegram\Command\PublicCommandInterface;
 use Psr\Log\LoggerInterface;
 use TelegramBot\Api\BotApi;
 use TelegramBot\Api\Types\Update;
@@ -13,7 +14,7 @@ use TelegramBot\Api\Types\Update;
 use function Emoji\detect_emoji;
 use function Emoji\remove_emoji;
 
-class StickerCommand extends AbstractCommand
+class StickerCommand extends AbstractCommand implements PublicCommandInterface
 {
     private const DEFAULT_EMOJI = "\u{1F3A8}";
 
