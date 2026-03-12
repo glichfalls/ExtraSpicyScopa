@@ -1,0 +1,169 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}{{ user.firstName }} - Admin{% endblock %}
+
+{% block admin_styles %}
+    .action-section {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #2a2a2a;
+    }
+
+    .action-section h2 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #ccc;
+        margin-bottom: 1rem;
+    }
+
+    .action-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        max-width: 450px;
+    }
+
+    .action-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.25rem;
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 12px;
+    }
+
+    .action-card.danger {
+        background: rgba(255, 51, 102, 0.06);
+        border-color: rgba(255, 51, 102, 0.15);
+    }
+
+    .action-card.admin-highlight {
+        background: rgba(255, 107, 53, 0.06);
+        border-color: rgba(255, 107, 53, 0.15);
+    }
+
+    .action-info {
+        font-size: 0.85rem;
+        color: #999;
+    }
+
+    .action-status {
+        font-weight: 600;
+    }
+
+    .btn-danger {
+        background: #ff3366;
+        color: #fff;
+    }
+
+    .btn-success {
+        background: #34d399;
+        color: #000;
+    }
+
+    .btn-orange {
+        background: #ff6b35;
+        color: #fff;
+    }
+
+    .temp-password {
+        margin-top: 1rem;
+        padding: 1rem 1.25rem;
+        background: rgba(255, 107, 53, 0.08);
+        border: 1px solid rgba(255, 107, 53, 0.2);
+        border-radius: 12px;
+        max-width: 450px;
+    }
+
+    .temp-password p {
+        font-size: 0.85rem;
+        color: #ccc;
+        margin-bottom: 0.4rem;
+    }
+
+    .temp-password code {
+        display: inline-block;
+        background: #0f0f0f;
+        padding: 0.3rem 0.7rem;
+        border-radius: 6px;
+        font-size: 1rem;
+        color: #ff6b35;
+        letter-spacing: 0.05em;
+    }
+{% endblock %}
+
+{% block admin_body %}
+    <h1>{{ user.firstName }}{% if user.username %} <span style="color:#666;font-weight:400;">@{{ user.username }}</span>{% endif %}</h1>
+
+    {% if saved %}
+        <div class="alert alert-success">Settings saved.</div>
+    {% endif %}
+
+    {% if tempPassword %}
+        <div class="temp-password">
+            <p>Temporary password (shown only once):</p>
+            <code>{{ tempPassword }}</code>
+        </div>
+    {% endif %}
+
+    <form method="post">
+        <div class="form-group">
+            <label class="form-label">Telegram ID</label>
+            <input type="text" class="form-input" value="{{ user.telegramId }}" disabled>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Daily Sticker Limit</label>
+            <input type="number" name="daily_limit" class="form-input" value="{{ user.dailyLimit }}" min="0" max="1000">
+        </div>
+
+        <div style="display:flex;gap:0.5rem;margin-top:1.5rem;">
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a href="{{ path('admin_users') }}" class="btn btn-ghost">Back</a>
+        </div>
+    </form>
+
+    <div class="action-section">
+        <h2>Access & Status</h2>
+        <div class="action-cards">
+            <div class="action-card {{ user.banned ? 'danger' : '' }}">
+                <div class="action-info">
+                    Status: <span class="action-status" style="color:{{ user.banned ? '#ff3366' : '#34d399' }}">{{ user.banned ? 'Banned' : 'Active' }}</span>
+                </div>
+                <form method="post" style="margin:0;">
+                    <input type="hidden" name="action" value="toggle_ban">
+                    <button type="submit" class="btn {{ user.banned ? 'btn-success' : 'btn-danger' }}">
+                        {{ user.banned ? 'Unban' : 'Ban' }}
+                    </button>
+                </form>
+            </div>
+
+            <div class="action-card {{ user.admin ? 'admin-highlight' : '' }}">
+                <div class="action-info">
+                    Role: <span class="action-status" style="color:{{ user.admin ? '#ff6b35' : '#888' }}">{{ user.admin ? 'Admin' : 'User' }}</span>
+                </div>
+                {% if user.id != admin.id %}
+                    <form method="post" style="margin:0;">
+                        <input type="hidden" name="action" value="toggle_admin">
+                        <button type="submit" class="btn {{ user.admin ? 'btn-ghost' : 'btn-orange' }}">
+                            {{ user.admin ? 'Remove Admin' : 'Make Admin' }}
+                        </button>
+                    </form>
+                {% else %}
+                    <span style="font-size:0.8rem;color:#555;">That's you</span>
+                {% endif %}
+            </div>
+
+            {% if user.admin and user.id != admin.id %}
+                <div class="action-card">
+                    <div class="action-info">Reset login password</div>
+                    <form method="post" style="margin:0;">
+                        <input type="hidden" name="action" value="reset_password">
+                        <button type="submit" class="btn btn-ghost">Reset Password</button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

@@ -35,6 +35,16 @@ class StickerRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function countSince(\DateTimeInterface $since): int
+    {
+        return (int) $this->createQueryBuilder('s')
+            ->select('COUNT(s.id)')
+            ->where('s.createdAt >= :since')
+            ->setParameter('since', $since)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     public function countRecentByUser(int $userId, \DateTimeInterface $since): int
     {
         return (int) $this->createQueryBuilder('s')

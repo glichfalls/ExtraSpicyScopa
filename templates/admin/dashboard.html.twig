@@ -1,0 +1,26 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Dashboard - Admin{% endblock %}
+
+{% block admin_body %}
+    <h1>Dashboard</h1>
+
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ totalUsers }}</div>
+            <div class="stat-label">Users</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ totalPacks }}</div>
+            <div class="stat-label">Sticker Packs</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ totalStickers }}</div>
+            <div class="stat-label">Total Stickers</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stickersToday }}</div>
+            <div class="stat-label">Stickers Today</div>
+        </div>
+    </div>
+{% endblock %}

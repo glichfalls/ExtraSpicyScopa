@@ -26,6 +26,15 @@ class User
     #[ORM\Column(options: ['default' => 5])]
     private int $dailyLimit = 5;
 
+    #[ORM\Column(options: ['default' => false])]
+    private bool $banned = false;
+
+    #[ORM\Column(options: ['default' => false])]
+    private bool $isAdmin = false;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $password = null;
+
     #[ORM\OneToOne(targetEntity: StickerPack::class, mappedBy: 'user')]
     private ?StickerPack $stickerPack = null;
 
@@ -75,6 +84,39 @@ class User
     public function setDailyLimit(int $dailyLimit): static
     {
         $this->dailyLimit = $dailyLimit;
+        return $this;
+    }
+
+    public function isBanned(): bool
+    {
+        return $this->banned;
+    }
+
+    public function setBanned(bool $banned): static
+    {
+        $this->banned = $banned;
+        return $this;
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->isAdmin;
+    }
+
+    public function setIsAdmin(bool $isAdmin): static
+    {
+        $this->isAdmin = $isAdmin;
+        return $this;
+    }
+
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(?string $password): static
+    {
+        $this->password = $password;
         return $this;
     }
 

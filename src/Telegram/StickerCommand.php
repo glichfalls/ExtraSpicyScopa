@@ -72,6 +72,11 @@ class StickerCommand extends AbstractCommand implements PublicCommandInterface
                 $from->getUsername()
             );
 
+            if ($user->isBanned()) {
+                $this->reply($api, $chatId, $messageId, 'Your account has been suspended.');
+                return;
+            }
+
             $recentCount = $this->stickerRepository->countRecentByUser(
                 $user->getId(),
                 new \DateTime('-24 hours'),
