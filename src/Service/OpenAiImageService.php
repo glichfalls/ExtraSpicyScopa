@@ -55,51 +55,67 @@ class OpenAiImageService
         $stylePrompt = self::STYLES[$style]['prompt'] ?? self::STYLES['default']['prompt'];
         $fullPrompt = "Turn this into a sticker: $prompt. $stylePrompt";
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'remix_');
-        file_put_contents($tempFile, $imageData);
-
-        try {
-            $boundary = bin2hex(random_bytes(16));
-
-            $body = '';
-            $body .= "--$boundary\r\n";
-            $body .= "Content-Disposition: form-data; name=\"model\"\r\n\r\ndall-e-2\r\n";
-            $body .= "--$boundary\r\n";
-            $body .= "Content-Disposition: form-data; name=\"prompt\"\r\n\r\n$fullPrompt\r\n";
-            $body .= "--$boundary\r\n";
-            $body .= "Content-Disposition: form-data; name=\"size\"\r\n\r\n512x512\r\n";
-            $body .= "--$boundary\r\n";
-            $body .= "Content-Disposition: form-data; name=\"image\"; filename=\"image.png\"\r\n";
-            $body .= "Content-Type: image/png\r\n\r\n";
-            $body .= $imageData . "\r\n";
-            $body .= "--$boundary--\r\n";
-
-            $response = $this->httpClient->request('POST', 'images/edits', [
-                'headers' => [
-                    'Content-Type' => "multipart/form-data; boundary=$boundary",
-                ],
-                'body' => $body,
-            ]);
-
-            $statusCode = $response->getStatusCode();
-
-            if ($statusCode !== 200) {
-                $responseBody = $response->getContent(false);
-                $error = json_decode($responseBody, true);
-                $message = $error['error']['message'] ?? "OpenAI returned HTTP $statusCode";
-                throw new \RuntimeException($message);
-            }
-
-            $data = $response->toArray();
-
-            if (!isset($data['data'][0]['b64_json'])) {
-                throw new \RuntimeException('No image data received from OpenAI');
-            }
-
-            return base64_decode($data['data'][0]['b64_json']);
-        } finally {
-            @unlink($tempFile);
+        // Convert to PNG (Telegram sends JPEG, dall-e-2 requires PNG)
+        $gd = imagecreatefromstring($imageData);
+        if ($gd === false) {
+            throw new \RuntimeException('Failed to read uploaded image');
         }
+        // Resize if larger than 1024x1024 to stay under 4MB
+        $w = imagesx($gd);
+        $h = imagesy($gd);
+        if ($w > 1024 || $h > 1024) {
+            $scale = min(1024 / $w, 1024 / $h);
+            $nw = (int) ($w * $scale);
+            $nh = (int) ($h * $scale);
+            $resized = imagecreatetruecolor($nw, $nh);
+            imagealphablending($resized, false);
+            imagesavealpha($resized, true);
+            imagecopyresampled($resized, $gd, 0, 0, 0, 0, $nw, $nh, $w, $h);
+            imagedestroy($gd);
+            $gd = $resized;
+        }
+        ob_start();
+        imagepng($gd);
+        $pngData = ob_get_clean();
+        imagedestroy($gd);
+
+        $boundary = bin2hex(random_bytes(16));
+
+        $body = "--$boundary\r\n";
+        $body .= "Content-Disposition: form-data; name=\"model\"\r\n\r\ndall-e-2\r\n";
+        $body .= "--$boundary\r\n";
+        $body .= "Content-Disposition: form-data; name=\"prompt\"\r\n\r\n$fullPrompt\r\n";
+        $body .= "--$boundary\r\n";
+        $body .= "Content-Disposition: form-data; name=\"size\"\r\n\r\n512x512\r\n";
+        $body .= "--$boundary\r\n";
+        $body .= "Content-Disposition: form-data; name=\"image\"; filename=\"image.png\"\r\n";
+        $body .= "Content-Type: image/png\r\n\r\n";
+        $body .= $pngData . "\r\n";
+        $body .= "--$boundary--\r\n";
+
+        $response = $this->httpClient->request('POST', 'images/edits', [
+            'headers' => [
+                'Content-Type' => "multipart/form-data; boundary=$boundary",
+            ],
+            'body' => $body,
+        ]);
+
+        $statusCode = $response->getStatusCode();
+
+        if ($statusCode !== 200) {
+            $responseBody = $response->getContent(false);
+            $error = json_decode($responseBody, true);
+            $message = $error['error']['message'] ?? "OpenAI returned HTTP $statusCode";
+            throw new \RuntimeException($message);
+        }
+
+        $data = $response->toArray();
+
+        if (!isset($data['data'][0]['b64_json'])) {
+            throw new \RuntimeException('No image data received from OpenAI');
+        }
+
+        return base64_decode($data['data'][0]['b64_json']);
     }
 
     private function buildStickerPrompt(string $userPrompt, string $style): string
