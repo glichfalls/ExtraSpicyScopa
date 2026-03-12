@@ -21,6 +21,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             set -e
+            PHP="/opt/plesk/php/8.4/bin/php"
             APP_DIR="/var/www/vhosts/srv1.netlabs.dev/sticker-bot.srv1.netlabs.dev"
 
             # Clone or pull
@@ -46,14 +47,14 @@ jobs:
             sed -i 's/^            //' .env.local
 
             # Install dependencies
-            composer install --no-dev --optimize-autoloader --no-interaction
+            $PHP $(which composer) install --no-dev --optimize-autoloader --no-interaction
 
             # Run database migrations
-            php bin/console doctrine:migrations:migrate --no-interaction
+            $PHP bin/console doctrine:migrations:migrate --no-interaction
 
             # Clear and warm up cache
-            php bin/console cache:clear --env=prod
-            php bin/console cache:warmup --env=prod
+            $PHP bin/console cache:clear --env=prod
+            $PHP bin/console cache:warmup --env=prod
 
             # Fix permissions
             chown -R www-data:www-data var/ || true
