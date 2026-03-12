@@ -6,14 +6,12 @@ use App\Repository\StickerRepository;
 use App\Repository\UserRepository;
 use App\Service\OpenAiImageService;
 use App\Service\StickerService;
+use App\Telegram\Dto\ParsedInput;
 use BoShurik\TelegramBotBundle\Telegram\Command\AbstractCommand;
 use BoShurik\TelegramBotBundle\Telegram\Command\PublicCommandInterface;
 use Psr\Log\LoggerInterface;
 use TelegramBot\Api\BotApi;
 use TelegramBot\Api\Types\Update;
-
-use function Emoji\detect_emoji;
-use function Emoji\remove_emoji;
 
 class StickerCommand extends AbstractCommand implements PublicCommandInterface
 {
@@ -57,11 +55,15 @@ class StickerCommand extends AbstractCommand implements PublicCommandInterface
         $from = $message->getFrom();
         $text = trim(preg_replace('/^\/sticker\s*/', '', $message->getText()));
 
-        $emoji = $this->extractEmoji($text);
-        $description = trim(remove_emoji($text));
+        if ($text === 'styles' || $text === '--help') {
+            $this->reply($api, $chatId, $messageId, "Available styles:\n\n" . ParsedInput::styleList() . "\n\nUsage: /sticker 🐱 happy cat --pixel");
+            return;
+        }
 
-        if (empty($description)) {
-            $this->reply($api, $chatId, $messageId, 'Please provide a description. Example: 🐱 happy orange cat');
+        $input = ParsedInput::fromText($text, self::DEFAULT_EMOJI);
+
+        if (empty($input->description)) {
+            $this->reply($api, $chatId, $messageId, "Please provide a description.\n\nExample: /sticker 🐱 happy orange cat\nWith style: /sticker 🐱 happy cat --pixel\n\nType /sticker styles to see all styles.");
             return;
         }
 
@@ -98,11 +100,12 @@ class StickerCommand extends AbstractCommand implements PublicCommandInterface
                 throw $e;
             }
 
-            $this->reply($api, $chatId, $messageId, 'Generating your sticker...');
+            $styleName = $input->style !== 'default' ? ' (' . OpenAiImageService::STYLES[$input->style]['name'] . ')' : '';
+            $this->reply($api, $chatId, $messageId, "Generating your sticker$styleName...");
 
-            $imageData = $this->openAiImageService->generateImage($description);
+            $imageData = $this->openAiImageService->generateImage($input->description, $input->style);
             $pngData = $this->stickerService->convertToPng($imageData);
-            $sticker = $this->stickerService->addSticker($pack, $pngData, $emoji, $description);
+            $sticker = $this->stickerService->addSticker($pack, $pngData, $input->emoji, $input->description);
 
             $api->call('sendSticker', [
                 'chat_id' => $chatId,
@@ -130,15 +133,4 @@ class StickerCommand extends AbstractCommand implements PublicCommandInterface
         ]);
     }
 
-    private function extractEmoji(string $text): string
-    {
-        $emojis = detect_emoji($text);
-
-        if (empty($emojis)) {
-            return self::DEFAULT_EMOJI;
-        }
-
-        // Strip variation selectors (U+FE0F) — Telegram rejects them in sticker emoji_list
-        return preg_replace('/\x{FE0F}/u', '', $emojis[0]['emoji']);
-    }
 }

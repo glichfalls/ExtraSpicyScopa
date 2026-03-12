@@ -11,12 +11,22 @@ class OpenAiImageService
     ) {
     }
 
-    public function generateImage(string $prompt): string
+    public const STYLES = [
+        'default' => ['name' => 'Default', 'prompt' => 'Bold outlines, vibrant colors, transparent background, simple.'],
+        'pixel' => ['name' => 'Pixel Art', 'prompt' => 'Pixel art style, 16-bit retro game aesthetic, crisp pixels, transparent background.'],
+        'watercolor' => ['name' => 'Watercolor', 'prompt' => 'Soft watercolor painting style, gentle colors, artistic brush strokes, transparent background.'],
+        'cartoon' => ['name' => 'Cartoon', 'prompt' => 'Exaggerated cartoon style, thick outlines, bright saturated colors, fun and playful, transparent background.'],
+        '3d' => ['name' => '3D', 'prompt' => '3D rendered style, smooth shading, soft lighting, clay-like material, transparent background.'],
+        'sketch' => ['name' => 'Sketch', 'prompt' => 'Hand-drawn pencil sketch style, crosshatching, rough lines, artistic, transparent background.'],
+        'flat' => ['name' => 'Flat', 'prompt' => 'Flat design, minimal, geometric shapes, no gradients, clean vector look, transparent background.'],
+    ];
+
+    public function generateImage(string $prompt, string $style = 'default'): string
     {
         $response = $this->httpClient->request('POST', 'images/generations', [
             'json' => [
                 'model' => 'gpt-image-1-mini',
-                'prompt' => $this->buildStickerPrompt($prompt),
+                'prompt' => $this->buildStickerPrompt($prompt, $style),
                 'size' => '1024x1024',
                 'output_format' => 'png',
             ],
@@ -40,8 +50,9 @@ class OpenAiImageService
         return base64_decode($data['data'][0]['b64_json']);
     }
 
-    private function buildStickerPrompt(string $userPrompt): string
+    private function buildStickerPrompt(string $userPrompt, string $style): string
     {
-        return "Sticker: $userPrompt. Bold outlines, vibrant colors, transparent background, simple.";
+        $stylePrompt = self::STYLES[$style]['prompt'] ?? self::STYLES['default']['prompt'];
+        return "Sticker: $userPrompt. $stylePrompt";
     }
 }
