@@ -44,7 +44,7 @@ class StickerCommand extends AbstractCommand implements PublicCommandInterface
             return false;
         }
 
-        return str_starts_with($text, '/sticker ') || $text === '/sticker';
+        return (bool) preg_match('/^\/sticker(@\w+)?(\s|$)/', $text);
     }
 
     public function execute(BotApi $api, Update $update): void
@@ -53,7 +53,7 @@ class StickerCommand extends AbstractCommand implements PublicCommandInterface
         $chatId = $message->getChat()->getId();
         $messageId = $message->getMessageId();
         $from = $message->getFrom();
-        $text = trim(preg_replace('/^\/sticker\s*/', '', $message->getText()));
+        $text = trim(preg_replace('/^\/sticker(@\w+)?\s*/', '', $message->getText()));
 
         if ($text === 'styles' || $text === '--help') {
             $this->reply($api, $chatId, $messageId, "Available styles:\n\n" . ParsedInput::styleList() . "\n\nUsage: /sticker 🐱 happy cat --pixel");
