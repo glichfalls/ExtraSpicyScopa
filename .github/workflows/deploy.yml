@@ -57,5 +57,4 @@ jobs:
             $PHP bin/console cache:warmup --env=prod
 
             # Fix permissions
-            chown -R www-data:www-data var/ || true
             chmod -R 775 var/ || true
