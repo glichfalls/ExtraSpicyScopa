@@ -50,6 +50,10 @@
         text-align: center;
     }
 
+    .admin-sidebar .sidebar-label {
+        display: inline;
+    }
+
     .admin-sidebar .logout-link {
         margin-top: 1.5rem;
         padding-top: 1rem;
@@ -60,6 +64,7 @@
         flex: 1;
         padding: 2rem;
         max-width: 1000px;
+        min-width: 0;
     }
 
     .admin-content h1 {
@@ -71,7 +76,7 @@
 
     .stat-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
         gap: 1rem;
         margin-bottom: 2rem;
     }
@@ -96,9 +101,15 @@
         margin-top: 0.35rem;
     }
 
+    .data-table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
     .data-table {
         width: 100%;
         border-collapse: collapse;
+        min-width: 600px;
     }
 
     .data-table th {
@@ -110,6 +121,7 @@
         color: #555;
         padding: 0.6rem 1rem;
         border-bottom: 1px solid #2a2a2a;
+        white-space: nowrap;
     }
 
     .data-table td {
@@ -117,6 +129,7 @@
         font-size: 0.875rem;
         border-bottom: 1px solid rgba(255, 255, 255, 0.04);
         color: #ccc;
+        white-space: nowrap;
     }
 
     .data-table tr:hover td {
@@ -200,6 +213,73 @@
         color: #34d399;
     }
 
+    @media (max-width: 768px) {
+        .admin {
+            flex-direction: column;
+        }
+
+        .admin-sidebar {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 0;
+            padding: 0;
+            border-right: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .admin-sidebar-title {
+            display: none;
+        }
+
+        .admin-sidebar a {
+            padding: 0.75rem 1rem;
+            white-space: nowrap;
+            flex-shrink: 0;
+            border-right: none;
+        }
+
+        .admin-sidebar a.active {
+            border-right: none;
+            border-bottom: 2px solid #ff6b35;
+        }
+
+        .admin-sidebar .sidebar-label {
+            display: none;
+        }
+
+        .admin-sidebar .sidebar-icon {
+            font-size: 1.15rem;
+        }
+
+        .admin-sidebar .logout-link {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: none;
+            margin-left: auto;
+            border-left: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .admin-content {
+            padding: 1.25rem 1rem;
+        }
+
+        .admin-content h1 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .form-input {
+            max-width: 100%;
+        }
+    }
+
     {% block admin_styles %}{% endblock %}
 {% endblock %}
 
@@ -208,19 +288,19 @@
         <aside class="admin-sidebar">
             <div class="admin-sidebar-title">Admin</div>
             <a href="{{ path('admin_dashboard') }}" class="{{ app.request.get('_route') == 'admin_dashboard' ? 'active' : '' }}">
-                <span class="sidebar-icon">📊</span> Dashboard
+                <span class="sidebar-icon">📊</span> <span class="sidebar-label">Dashboard</span>
             </a>
             <a href="{{ path('admin_users') }}" class="{{ app.request.get('_route') starts with 'admin_user' ? 'active' : '' }}">
-                <span class="sidebar-icon">👤</span> Users
+                <span class="sidebar-icon">👤</span> <span class="sidebar-label">Users</span>
             </a>
             <a href="{{ path('admin_stickers') }}" class="{{ app.request.get('_route') == 'admin_stickers' ? 'active' : '' }}">
-                <span class="sidebar-icon">🎨</span> Stickers
+                <span class="sidebar-icon">🎨</span> <span class="sidebar-label">Stickers</span>
             </a>
-            <a href="{{ path('admin_password') }}" class="logout-link {{ app.request.get('_route') == 'admin_password' ? 'active' : '' }}">
-                <span class="sidebar-icon">🔑</span> Password
+            <a href="{{ path('admin_password') }}" class="{{ app.request.get('_route') == 'admin_password' ? 'active' : '' }}">
+                <span class="sidebar-icon">🔑</span> <span class="sidebar-label">Password</span>
             </a>
-            <a href="{{ path('admin_logout') }}">
-                <span class="sidebar-icon">🚪</span> Log out
+            <a href="{{ path('admin_logout') }}" class="logout-link">
+                <span class="sidebar-icon">🚪</span> <span class="sidebar-label">Log out</span>
             </a>
         </aside>
         <main class="admin-content">

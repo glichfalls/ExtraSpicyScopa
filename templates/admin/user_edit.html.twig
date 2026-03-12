@@ -91,6 +91,21 @@
         color: #ff6b35;
         letter-spacing: 0.05em;
     }
+
+    @media (max-width: 768px) {
+        .action-cards {
+            max-width: 100%;
+        }
+
+        .action-card {
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .temp-password {
+            max-width: 100%;
+        }
+    }
 {% endblock %}
 
 {% block admin_body %}

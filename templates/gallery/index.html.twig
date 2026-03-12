@@ -53,6 +53,25 @@
         padding: 3rem;
         text-align: center;
     }
+
+    @media (max-width: 600px) {
+        .gallery-page {
+            padding: 1.25rem 1rem;
+        }
+
+        .gallery-page h1 {
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .packs {
+            grid-template-columns: 1fr;
+        }
+
+        .pack-card {
+            padding: 1.25rem;
+        }
+    }
 {% endblock %}
 
 {% block body %}

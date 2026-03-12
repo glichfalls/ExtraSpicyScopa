@@ -53,6 +53,12 @@
             font-size: 1.3rem;
         }
 
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
         .nav-links {
             display: flex;
             align-items: center;
@@ -89,6 +95,56 @@
             background: linear-gradient(135deg, #ff6b35, #ff3366) !important;
         }
 
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.4rem;
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+
+        @media (max-width: 600px) {
+            .nav {
+                padding: 0 1rem;
+            }
+
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 56px;
+                left: 0;
+                right: 0;
+                flex-direction: column;
+                background: rgba(15, 15, 15, 0.95);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+                padding: 0.5rem 0;
+                gap: 0;
+            }
+
+            .nav-links.open {
+                display: flex;
+            }
+
+            .nav-links a {
+                padding: 0.75rem 1.5rem;
+                border-radius: 0;
+                width: 100%;
+            }
+
+            .nav-toggle {
+                display: block;
+            }
+
+            .nav-cta {
+                font-size: 0.75rem;
+                padding: 0.35rem 0.75rem;
+            }
+        }
+
         {% block styles %}{% endblock %}
     </style>
 </head>
@@ -98,11 +154,14 @@
             <a href="{{ path('landing') }}" class="nav-logo">
                 <span class="nav-logo-icon">🌶️</span> Extra Spicy
             </a>
-            <div class="nav-links">
+        </div>
+        <div class="nav-right">
+            <div class="nav-links" id="nav-links">
                 <a href="{{ path('gallery') }}">Gallery</a>
             </div>
+            <a href="https://t.me/{{ bot_username }}" class="nav-cta">Open Bot</a>
+            <button class="nav-toggle" onclick="document.getElementById('nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
         </div>
-        <a href="https://t.me/{{ bot_username }}" class="nav-cta">Open Bot</a>
     </nav>
     {% block body %}{% endblock %}
 </body>

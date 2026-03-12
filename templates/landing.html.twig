@@ -11,7 +11,7 @@
         text-align: center;
     }
 
-    .landing-container { max-width: 600px; }
+    .landing-container { max-width: 600px; width: 100%; }
 
     .logo { font-size: 4rem; margin-bottom: 1rem; }
 
@@ -57,6 +57,7 @@
         border-radius: 4px;
         font-size: 0.85rem;
         color: #ff6b35;
+        word-break: break-all;
     }
 
     .cta {
@@ -79,6 +80,18 @@
     .footer { margin-top: 3rem; font-size: 0.8rem; color: #555; }
     .footer a { color: #777; }
     .footer a:hover { color: #aaa; }
+
+    @media (max-width: 600px) {
+        .landing { padding: 1.5rem 1rem; }
+        .logo { font-size: 3rem; }
+        h1 { font-size: 1.8rem; }
+        .tagline { font-size: 0.95rem; margin-bottom: 1.5rem; }
+        .step { gap: 0.75rem; padding: 0.85rem; }
+        .step-icon { font-size: 1.2rem; }
+        .step-text { font-size: 0.85rem; }
+        .step-text code { font-size: 0.75rem; }
+        .cta { padding: 0.75rem 1.5rem; font-size: 1rem; }
+    }
 {% endblock %}
 
 {% block body %}
