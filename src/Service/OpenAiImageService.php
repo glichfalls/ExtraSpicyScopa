@@ -59,9 +59,13 @@ class OpenAiImageService
 
         $response = $this->httpClient->request('POST', 'images/edits', [
             'json' => [
-                'model' => 'gpt-image-1',
+                'model' => 'gpt-image-1-mini',
                 'prompt' => $fullPrompt,
-                'images' => ['data:image/png;base64,' . $imageBase64],
+                'images' => [
+                    ['image_url' => 'data:image/jpeg;base64,' . $imageBase64],
+                ],
+                'background' => 'transparent',
+                'output_format' => 'png',
                 'size' => '1024x1024',
             ],
         ]);
