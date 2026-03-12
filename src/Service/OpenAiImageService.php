@@ -27,7 +27,7 @@ class OpenAiImageService
             'json' => [
                 'model' => 'gpt-image-1-mini',
                 'prompt' => $this->buildStickerPrompt($prompt, $style),
-                'size' => '512x512',
+                'size' => '1024x1024',
                 'output_format' => 'png',
             ],
         ]);
