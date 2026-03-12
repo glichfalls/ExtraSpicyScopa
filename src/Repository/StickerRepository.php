@@ -22,6 +22,19 @@ class StickerRepository extends ServiceEntityRepository
         $this->getEntityManager()->flush();
     }
 
+    /**
+     * @return Sticker[]
+     */
+    public function findByPack(int $packId): array
+    {
+        return $this->createQueryBuilder('s')
+            ->where('s.pack = :packId')
+            ->setParameter('packId', $packId)
+            ->orderBy('s.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function countRecentByUser(int $userId, \DateTimeInterface $since): int
     {
         return (int) $this->createQueryBuilder('s')
