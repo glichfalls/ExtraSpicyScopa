@@ -22,6 +22,15 @@ class OpenAiImageService
             ],
         ]);
 
+        $statusCode = $response->getStatusCode();
+
+        if ($statusCode !== 200) {
+            $body = $response->getContent(false);
+            $error = json_decode($body, true);
+            $message = $error['error']['message'] ?? "OpenAI returned HTTP $statusCode";
+            throw new \RuntimeException($message);
+        }
+
         $data = $response->toArray();
 
         if (!isset($data['data'][0]['b64_json'])) {
