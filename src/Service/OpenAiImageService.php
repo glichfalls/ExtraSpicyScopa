@@ -77,6 +77,17 @@ class OpenAiImageService
         ob_start();
         imagepng($rgba);
         $pngData = ob_get_clean();
+
+        // Create fully transparent mask (= edit everything, use image as reference)
+        $mask = imagecreatetruecolor($nw, $nh);
+        imagealphablending($mask, false);
+        imagesavealpha($mask, true);
+        $maskTransparent = imagecolorallocatealpha($mask, 0, 0, 0, 127);
+        imagefill($mask, 0, 0, $maskTransparent);
+        ob_start();
+        imagepng($mask);
+        $maskData = ob_get_clean();
+        imagedestroy($mask);
         imagedestroy($rgba);
 
         $boundary = bin2hex(random_bytes(16));
@@ -93,6 +104,10 @@ class OpenAiImageService
         $body .= "Content-Disposition: form-data; name=\"image\"; filename=\"image.png\"\r\n";
         $body .= "Content-Type: image/png\r\n\r\n";
         $body .= $pngData . "\r\n";
+        $body .= "--$boundary\r\n";
+        $body .= "Content-Disposition: form-data; name=\"mask\"; filename=\"mask.png\"\r\n";
+        $body .= "Content-Type: image/png\r\n\r\n";
+        $body .= $maskData . "\r\n";
         $body .= "--$boundary--\r\n";
 
         $response = $this->httpClient->request('POST', 'images/edits', [
