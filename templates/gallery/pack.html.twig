@@ -51,6 +51,13 @@
         text-align: center;
     }
 
+    .sticker-image {
+        width: 100%;
+        max-width: 150px;
+        height: auto;
+        margin-bottom: 0.5rem;
+    }
+
     .sticker-emoji {
         font-size: 2rem;
         margin-bottom: 0.5rem;
@@ -102,7 +109,11 @@
             <div class="stickers">
                 {% for sticker in stickers %}
                     <div class="sticker-card">
-                        <div class="sticker-emoji">{{ sticker.emoji }}</div>
+                        {% if sticker.imagePath %}
+                            <img class="sticker-image" src="{{ asset(sticker.imagePath) }}" alt="{{ sticker.prompt }}">
+                        {% else %}
+                            <div class="sticker-emoji">{{ sticker.emoji }}</div>
+                        {% endif %}
                         <div class="sticker-prompt">{{ sticker.prompt }}</div>
                         <div class="sticker-date">{{ sticker.createdAt|date('M j, Y') }}</div>
                     </div>

@@ -59,5 +59,9 @@ jobs:
             # Set Telegram webhook
             $PHP bin/console telegram:webhook:set https://sticker-bot.srv1.netlabs.dev/webhook/
 
+            # Ensure sticker upload directory exists
+            mkdir -p public/stickers
+            chmod 775 public/stickers
+
             # Fix permissions
             chmod -R 775 var/ || true

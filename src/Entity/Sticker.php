@@ -27,6 +27,9 @@ class Sticker
     #[ORM\Column(type: Types::TEXT)]
     private ?string $prompt = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $imagePath = null;
+
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private \DateTimeInterface $createdAt;
 
@@ -81,6 +84,17 @@ class Sticker
     public function setPrompt(string $prompt): static
     {
         $this->prompt = $prompt;
+        return $this;
+    }
+
+    public function getImagePath(): ?string
+    {
+        return $this->imagePath;
+    }
+
+    public function setImagePath(string $imagePath): static
+    {
+        $this->imagePath = $imagePath;
         return $this;
     }
 

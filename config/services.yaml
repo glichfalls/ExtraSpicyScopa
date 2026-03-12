@@ -20,3 +20,8 @@ services:
     App\Service\StickerService:
         arguments:
             $botUsername: '%telegram_bot_username%'
+            $projectDir: '%kernel.project_dir%'
+
+    App\Command\SyncStickersCommand:
+        arguments:
+            $projectDir: '%kernel.project_dir%'

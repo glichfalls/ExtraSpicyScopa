@@ -20,6 +20,7 @@ class StickerService
         private readonly StickerPackRepository $stickerPackRepository,
         private readonly StickerRepository $stickerRepository,
         private readonly string $botUsername,
+        private readonly string $projectDir,
     ) {
         $this->imageManager = new ImageManager(new Driver());
     }
@@ -102,6 +103,15 @@ class StickerService
         $sticker->setFileId($fileId);
         $sticker->setEmoji($emoji);
         $sticker->setPrompt($prompt);
+
+        $stickersDir = $this->projectDir . '/public/stickers';
+        if (!is_dir($stickersDir)) {
+            mkdir($stickersDir, 0775, true);
+        }
+        $filename = uniqid('sticker_') . '.png';
+        file_put_contents($stickersDir . '/' . $filename, $pngData);
+        $sticker->setImagePath('stickers/' . $filename);
+
         $this->stickerRepository->save($sticker);
 
         return $sticker;

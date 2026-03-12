@@ -18,6 +18,9 @@
 *.swp
 *.swo
 
+# Sticker images
+/public/stickers/
+
 # OS
 .DS_Store
 Thumbs.db
