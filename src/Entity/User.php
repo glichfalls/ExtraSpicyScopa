@@ -23,6 +23,9 @@ class User
     #[ORM\Column(length: 255)]
     private ?string $firstName = null;
 
+    #[ORM\Column(options: ['default' => 5])]
+    private int $dailyLimit = 5;
+
     #[ORM\OneToOne(targetEntity: StickerPack::class, mappedBy: 'user')]
     private ?StickerPack $stickerPack = null;
 
@@ -61,6 +64,17 @@ class User
     public function setFirstName(string $firstName): static
     {
         $this->firstName = $firstName;
+        return $this;
+    }
+
+    public function getDailyLimit(): int
+    {
+        return $this->dailyLimit;
+    }
+
+    public function setDailyLimit(int $dailyLimit): static
+    {
+        $this->dailyLimit = $dailyLimit;
         return $this;
     }
 

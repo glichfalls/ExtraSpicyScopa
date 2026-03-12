@@ -2,6 +2,7 @@
 
 namespace App\Telegram;
 
+use App\Repository\StickerRepository;
 use App\Repository\UserRepository;
 use App\Service\OpenAiImageService;
 use App\Service\StickerService;
@@ -22,6 +23,7 @@ class StickerCommand extends AbstractCommand implements PublicCommandInterface
         private readonly OpenAiImageService $openAiImageService,
         private readonly StickerService $stickerService,
         private readonly UserRepository $userRepository,
+        private readonly StickerRepository $stickerRepository,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -69,6 +71,16 @@ class StickerCommand extends AbstractCommand implements PublicCommandInterface
                 $from->getFirstName() ?? 'User',
                 $from->getUsername()
             );
+
+            $recentCount = $this->stickerRepository->countRecentByUser(
+                $user->getId(),
+                new \DateTime('-24 hours'),
+            );
+
+            if ($recentCount >= $user->getDailyLimit()) {
+                $this->reply($api, $chatId, $messageId, "You've reached your daily limit of {$user->getDailyLimit()} stickers. Try again tomorrow!");
+                return;
+            }
 
             try {
                 $pack = $this->stickerService->ensurePack($user);
