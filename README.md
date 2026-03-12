@@ -26,9 +26,10 @@ The bot will:
 ## Tech Stack
 
 - **Framework**: Symfony 7
-- **Database**: SQLite
+- **Database**: MySQL
 - **Image Processing**: Intervention Image
-- **Deployment**: Docker + GitHub Actions
+- **Hosting**: Plesk (srv1.netlabs.dev)
+- **Deployment**: GitHub Actions
 
 ## Self-Hosting
 
@@ -36,18 +37,7 @@ The bot will:
 
 - Telegram Bot Token (from [@BotFather](https://t.me/BotFather))
 - OpenAI API Key
-- Server with Docker (Oracle Cloud Free Tier works great)
-
-### Quick Deploy (Oracle Cloud)
-
-1. Create an Ubuntu instance on Oracle Cloud
-2. SSH in and run:
-   ```bash
-   curl -sSL https://raw.githubusercontent.com/glichfalls/ExtraSpicyStickers/master/deploy/setup-from-github.sh | bash -s glichfalls/ExtraSpicyStickers
-   ```
-3. Edit `/opt/sticker-bot/.env.local` with your tokens
-4. Start: `docker compose -f docker-compose.prod.yml up -d`
-5. Set webhook: `./deploy/set-webhook.sh YOUR_DOMAIN BOT_TOKEN`
+- Server with PHP 8.4, MySQL, and Composer
 
 ### Environment Variables
 
@@ -56,14 +46,23 @@ The bot will:
 | `TELEGRAM_BOT_TOKEN` | Bot token from BotFather |
 | `TELEGRAM_BOT_USERNAME` | Bot username (without @) |
 | `OPENAI_API_KEY` | OpenAI API key |
-| `DATABASE_URL` | SQLite path (default: `var/data.db`) |
+| `DATABASE_URL` | MySQL connection string |
+| `APP_SECRET` | Random 64-char hex string (`openssl rand -hex 32`) |
 
 ### GitHub Actions Auto-Deploy
 
-Add these repository secrets for automatic deployment on push:
+Pushes to `master` automatically deploy to the server. Add these repository secrets:
 
-- `ORACLE_HOST`: Your server's public IP
-- `ORACLE_SSH_KEY`: Private SSH key for server access
+| Secret | Description |
+|--------|-------------|
+| `SERVER_HOST` | Server IP address |
+| `SERVER_USER` | SSH username |
+| `SERVER_SSH_KEY` | Private SSH key for server access |
+| `APP_SECRET` | Symfony app secret |
+| `TELEGRAM_BOT_TOKEN` | Bot token |
+| `TELEGRAM_BOT_USERNAME` | Bot username |
+| `OPENAI_API_KEY` | OpenAI API key |
+| `DATABASE_URL` | MySQL connection string |
 
 ## Local Development
 
