@@ -123,9 +123,13 @@ class CardStickerService
 
     public function deleteStickerSet(): void
     {
-        $this->botApi->call('deleteStickerSet', [
-            'name' => $this->getStickerSetName(),
-        ]);
+        try {
+            $this->botApi->call('deleteStickerSet', [
+                'name' => $this->getStickerSetName(),
+            ]);
+        } catch (\Exception) {
+            // Already deleted or never existed
+        }
     }
 
     /**
@@ -140,7 +144,15 @@ class CardStickerService
 
         if ($isFirst) {
             $this->createStickerSet($userId, $card, $fileId);
+            // Wait for Telegram to register the new set
+            sleep(1);
         } else {
+            // Verify set exists before adding
+            if (!$this->stickerSetExists()) {
+                throw new \RuntimeException(
+                    'Sticker set "' . $this->getStickerSetName() . '" does not exist. createNewStickerSet may have failed.'
+                );
+            }
             $this->addStickerToSet($userId, $card, $fileId);
         }
 
