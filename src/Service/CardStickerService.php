@@ -41,10 +41,7 @@ class CardStickerService
         }
 
         $tmpPath = $tmpDir . '/' . $card->getSuit()->value . '_' . $card->getValue() . '.jpg';
-        $context = stream_context_create([
-            'http' => ['header' => 'User-Agent: ExtraSpicyScopaBot/1.0'],
-        ]);
-        file_put_contents($tmpPath, file_get_contents($imageUrl, false, $context));
+        file_put_contents($tmpPath, $this->fetchWithRetry($imageUrl));
 
         return $tmpPath;
     }
@@ -173,16 +170,11 @@ class CardStickerService
         $stickers = $result['stickers'];
         $cards = $this->cardRepository->findBy([], ['suit' => 'ASC', 'value' => 'ASC']);
 
-        if (count($stickers) !== count($cards)) {
-            throw new \RuntimeException(sprintf(
-                'Sticker set has %d stickers but expected %d cards',
-                count($stickers),
-                count($cards)
-            ));
-        }
-
         $synced = 0;
         foreach ($cards as $i => $card) {
+            if (!isset($stickers[$i])) {
+                break;
+            }
             $card->setTelegramFileId($stickers[$i]['file_id']);
             $synced++;
         }
@@ -214,16 +206,45 @@ class CardStickerService
             'format' => 'json',
         ]);
 
-        $response = json_decode(
-            file_get_contents($url, false, stream_context_create([
-                'http' => ['header' => 'User-Agent: ExtraSpicyScopaBot/1.0'],
-            ])),
-            true
-        );
+        $response = json_decode($this->fetchWithRetry($url), true);
 
         $pages = $response['query']['pages'];
         $page = reset($pages);
 
         return $page['imageinfo'][0]['url'];
+    }
+
+    private function fetchWithRetry(string $url, int $maxRetries = 5): string
+    {
+        $context = stream_context_create([
+            'http' => [
+                'header' => 'User-Agent: ExtraSpicyScopaBot/1.0',
+                'ignore_errors' => true,
+            ],
+        ]);
+
+        for ($attempt = 0; $attempt <= $maxRetries; $attempt++) {
+            $content = @file_get_contents($url, false, $context);
+
+            if ($content !== false) {
+                // Check for 429 in response headers
+                $status = $http_response_header[0] ?? '';
+                if (str_contains($status, '429')) {
+                    $wait = (int) (2 ** $attempt) + 1;
+                    sleep($wait);
+                    continue;
+                }
+                if (str_contains($status, '200')) {
+                    return $content;
+                }
+            }
+
+            if ($attempt < $maxRetries) {
+                $wait = (int) (2 ** $attempt) + 1;
+                sleep($wait);
+            }
+        }
+
+        throw new \RuntimeException("Failed to fetch $url after $maxRetries retries");
     }
 }

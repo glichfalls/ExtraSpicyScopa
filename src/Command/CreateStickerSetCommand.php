@@ -90,8 +90,8 @@ class CreateStickerSetCommand extends Command
                 return Command::FAILURE;
             }
 
-            // Telegram rate limit
-            usleep(500_000);
+            // Rate limit: Wikimedia + Telegram
+            sleep(2);
         }
 
         $io->progressFinish();
