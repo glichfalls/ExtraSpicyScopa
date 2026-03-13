@@ -25,7 +25,7 @@ class StartCommand extends AbstractCommand implements PublicCommandInterface
 
         $api->call('sendMessage', [
             'chat_id' => $message->getChat()->getId(),
-            'text' => "Use /sticker to generate AI stickers!\n\nExample: /sticker 🐱 happy orange cat\nWith style: /sticker 🐱 cat --pixel\n\nSend a photo with /remix as caption to turn it into a sticker!\n\nhttps://sticker-bot.srv1.netlabs.dev",
+            'text' => "Benvenuto a Extra Spicy Scopa! \u{1F0CF}\n\nPlay the classic Italian card game Scopa right here in Telegram.\n\nCommands:\n/newgame - Start a new game\n/join - Join an open game",
             'reply_parameters' => json_encode(['message_id' => $message->getMessageId()]),
         ]);
     }

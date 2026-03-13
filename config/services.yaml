@@ -13,15 +13,7 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-    App\Service\OpenAiImageService:
-        arguments:
-            $httpClient: '@openai.client'
-
-    App\Service\StickerService:
+    App\Service\CardStickerService:
         arguments:
             $botUsername: '%telegram_bot_username%'
-            $projectDir: '%kernel.project_dir%'
-
-    App\Command\SyncStickersCommand:
-        arguments:
             $projectDir: '%kernel.project_dir%'

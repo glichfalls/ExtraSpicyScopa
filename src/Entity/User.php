@@ -35,9 +35,6 @@ class User
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $password = null;
 
-    #[ORM\OneToOne(targetEntity: StickerPack::class, mappedBy: 'user')]
-    private ?StickerPack $stickerPack = null;
-
     public function getId(): ?int
     {
         return $this->id;
@@ -120,8 +117,4 @@ class User
         return $this;
     }
 
-    public function getStickerPack(): ?StickerPack
-    {
-        return $this->stickerPack;
-    }
 }
