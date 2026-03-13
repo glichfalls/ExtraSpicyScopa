@@ -22,7 +22,7 @@ jobs:
           script: |
             set -e
             PHP="/opt/plesk/php/8.4/bin/php"
-            APP_DIR="/var/www/vhosts/srv1.netlabs.dev/sticker-bot.srv1.netlabs.dev"
+            APP_DIR="/var/www/vhosts/srv1.netlabs.dev/scopa-bot.srv1.netlabs.dev"
 
             # Clone or pull
             if [ -d "$APP_DIR/.git" ]; then
