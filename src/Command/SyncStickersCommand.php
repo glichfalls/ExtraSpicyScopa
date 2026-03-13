@@ -31,8 +31,8 @@ class SyncStickersCommand extends Command
         $io->info("Syncing from sticker set: {$setName}");
 
         if (!$this->cardStickerService->stickerSetExists()) {
-            $io->error("Sticker set '{$setName}' does not exist on Telegram. Create it first with app:stickers:create.");
-            return Command::FAILURE;
+            $io->warning("Sticker set '{$setName}' does not exist yet. Skipping sync.");
+            return Command::SUCCESS;
         }
 
         $this->cardRepository->seedAll();
