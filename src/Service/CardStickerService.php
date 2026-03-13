@@ -12,7 +12,6 @@ use TelegramBot\Api\BotApi;
 
 class CardStickerService
 {
-    private const WIKIMEDIA_API = 'https://commons.wikimedia.org/w/api.php';
     private const STICKER_SIZE = 512;
     private const STICKER_SET_PREFIX = 'scopa_deck';
 
@@ -198,20 +197,16 @@ class CardStickerService
 
     private function getWikimediaImageUrl(string $filename): string
     {
-        $url = self::WIKIMEDIA_API . '?' . http_build_query([
-            'action' => 'query',
-            'titles' => 'File:' . $filename,
-            'prop' => 'imageinfo',
-            'iiprop' => 'url',
-            'format' => 'json',
-        ]);
+        // Wikimedia Commons URLs follow a deterministic pattern based on MD5 of filename
+        $encoded = str_replace(' ', '_', $filename);
+        $hash = md5($encoded);
 
-        $response = json_decode($this->fetchWithRetry($url), true);
-
-        $pages = $response['query']['pages'];
-        $page = reset($pages);
-
-        return $page['imageinfo'][0]['url'];
+        return sprintf(
+            'https://upload.wikimedia.org/wikipedia/commons/%s/%s/%s',
+            $hash[0],
+            $hash[0] . $hash[1],
+            rawurlencode($encoded),
+        );
     }
 
     private function fetchWithRetry(string $url, int $maxRetries = 5): string
