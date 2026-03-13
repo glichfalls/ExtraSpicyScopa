@@ -48,9 +48,11 @@ class CreateStickerSetCommand extends Command
         $resume = $input->getOption('resume');
         $setExists = $this->cardStickerService->stickerSetExists();
 
+        $force = $input->getOption('force');
+
         // Check if sticker set already exists
         if ($setExists && !$resume) {
-            if ($input->getOption('force')) {
+            if ($force) {
                 $io->warning('Deleting existing sticker set...');
                 $this->cardStickerService->deleteStickerSet();
                 $setExists = false;
@@ -65,6 +67,14 @@ class CreateStickerSetCommand extends Command
 
         // Process all cards
         $cards = $this->cardRepository->findBy([], ['suit' => 'ASC', 'value' => 'ASC']);
+
+        // --force: clear all file_ids and reprocess everything
+        if ($force) {
+            foreach ($cards as $card) {
+                $card->setTelegramFileId(null);
+            }
+            $this->cardRepository->getEntityManager()->flush();
+        }
 
         $remaining = $resume
             ? array_filter($cards, fn($c) => $c->getTelegramFileId() === null)
