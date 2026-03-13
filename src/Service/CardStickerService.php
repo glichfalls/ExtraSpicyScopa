@@ -19,6 +19,7 @@ class CardStickerService
         private readonly CardRepository $cardRepository,
         private readonly EntityManagerInterface $em,
         private readonly string $botUsername,
+        private readonly string $botToken,
         private readonly string $projectDir,
     ) {
     }
@@ -71,7 +72,7 @@ class CardStickerService
 
     public function uploadStickerFile(string $pngPath, int $userId): string
     {
-        $result = $this->botApi->call('uploadStickerFile', [
+        $result = $this->tgCall('uploadStickerFile', [
             'user_id' => $userId,
             'sticker' => new \CURLFile($pngPath, 'image/png'),
             'sticker_format' => 'static',
@@ -82,7 +83,7 @@ class CardStickerService
 
     public function createStickerSet(int $userId, Card $firstCard, string $fileId): void
     {
-        $this->botApi->call('createNewStickerSet', [
+        $this->tgCall('createNewStickerSet', [
             'user_id' => $userId,
             'name' => $this->getStickerSetName(),
             'title' => 'Scopa - Carte Napoletane',
@@ -97,7 +98,7 @@ class CardStickerService
 
     public function addStickerToSet(int $userId, Card $card, string $fileId): void
     {
-        $this->botApi->call('addStickerToSet', [
+        $this->tgCall('addStickerToSet', [
             'user_id' => $userId,
             'name' => $this->getStickerSetName(),
             'sticker' => json_encode([
@@ -112,7 +113,7 @@ class CardStickerService
     public function stickerSetExists(): bool
     {
         try {
-            $this->botApi->call('getStickerSet', [
+            $this->tgCall('getStickerSet', [
                 'name' => $this->getStickerSetName(),
             ]);
             return true;
@@ -124,7 +125,7 @@ class CardStickerService
     public function deleteStickerSet(): void
     {
         try {
-            $this->botApi->call('deleteStickerSet', [
+            $this->tgCall('deleteStickerSet', [
                 'name' => $this->getStickerSetName(),
             ]);
         } catch (\Exception) {
@@ -144,15 +145,7 @@ class CardStickerService
 
         if ($isFirst) {
             $this->createStickerSet($userId, $card, $fileId);
-            // Wait for Telegram to register the new set
-            sleep(1);
         } else {
-            // Verify set exists before adding
-            if (!$this->stickerSetExists()) {
-                throw new \RuntimeException(
-                    'Sticker set "' . $this->getStickerSetName() . '" does not exist. createNewStickerSet may have failed.'
-                );
-            }
             $this->addStickerToSet($userId, $card, $fileId);
         }
 
@@ -177,7 +170,7 @@ class CardStickerService
      */
     public function syncFromTelegram(): int
     {
-        $result = $this->botApi->call('getStickerSet', [
+        $result = $this->tgCall('getStickerSet', [
             'name' => $this->getStickerSetName(),
         ]);
 
@@ -200,7 +193,7 @@ class CardStickerService
 
     private function getLastStickerFileId(): string
     {
-        $result = $this->botApi->call('getStickerSet', [
+        $result = $this->tgCall('getStickerSet', [
             'name' => $this->getStickerSetName(),
         ]);
 
@@ -208,6 +201,32 @@ class CardStickerService
         $lastSticker = end($stickers);
 
         return $lastSticker['file_id'];
+    }
+
+    /**
+     * Direct Telegram API call bypassing the library to avoid encoding issues.
+     */
+    private function tgCall(string $method, array $data): array
+    {
+        $url = "https://api.telegram.org/bot{$this->botToken}/{$method}";
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        $result = json_decode($response, true);
+
+        if (!($result['ok'] ?? false)) {
+            throw new \RuntimeException($result['description'] ?? "Telegram API error (HTTP $httpCode)");
+        }
+
+        return $result['result'];
     }
 
     private function fetchWithRetry(string $url, int $maxRetries = 5): string
