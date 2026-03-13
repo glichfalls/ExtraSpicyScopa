@@ -28,4 +28,15 @@ enum Suit: string
             self::Bastoni => 'Bastoni',
         };
     }
+
+    public static function fromChar(string $char): self
+    {
+        return match ($char) {
+            'd' => self::Denari,
+            'c' => self::Coppe,
+            's' => self::Spade,
+            'b' => self::Bastoni,
+            default => throw new \InvalidArgumentException("Unknown suit char: $char"),
+        };
+    }
 }

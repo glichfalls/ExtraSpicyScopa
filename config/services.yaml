@@ -17,3 +17,7 @@ services:
         arguments:
             $botUsername: '%telegram_bot_username%'
             $projectDir: '%kernel.project_dir%'
+
+    App\Service\GameMessageService:
+        arguments:
+            $botUsername: '%telegram_bot_username%'

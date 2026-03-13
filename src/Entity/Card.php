@@ -23,6 +23,16 @@ class Card
         10 => 'Re',
     ];
 
+    private const SHORT_LABELS = [
+        1 => 'A', 2 => '2', 3 => '3', 4 => '4', 5 => '5',
+        6 => '6', 7 => '7', 8 => 'F', 9 => 'C', 10 => 'R',
+    ];
+
+    public const PRIMIERA_VALUES = [
+        7 => 21, 6 => 18, 1 => 16, 5 => 15, 4 => 14,
+        3 => 13, 2 => 12, 8 => 10, 9 => 10, 10 => 10,
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -99,6 +109,45 @@ class Card
         $valueName = self::VALUE_NAMES[$this->value];
 
         return sprintf('%s %s di %s.jpg', $number, $valueName, $suitName);
+    }
+
+    public function getRef(): string
+    {
+        return $this->suit->value[0] . $this->value;
+    }
+
+    public function getShortName(): string
+    {
+        return self::SHORT_LABELS[$this->value] . $this->suit->emoji();
+    }
+
+    public function getPrimieraValue(): int
+    {
+        return self::PRIMIERA_VALUES[$this->value];
+    }
+
+    public static function parseRef(string $ref): array
+    {
+        $suit = Suit::fromChar($ref[0]);
+        $value = (int) substr($ref, 1);
+
+        return [$suit, $value];
+    }
+
+    public static function valueFromRef(string $ref): int
+    {
+        return (int) substr($ref, 1);
+    }
+
+    public static function suitFromRef(string $ref): Suit
+    {
+        return Suit::fromChar($ref[0]);
+    }
+
+    public static function shortNameFromRef(string $ref): string
+    {
+        [$suit, $value] = self::parseRef($ref);
+        return self::SHORT_LABELS[$value] . $suit->emoji();
     }
 
     public function __toString(): string
