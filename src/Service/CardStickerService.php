@@ -7,7 +7,6 @@ use App\Repository\CardRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
-use Symfony\Component\HttpClient\HttpClient;
 use TelegramBot\Api\BotApi;
 
 class CardStickerService
@@ -31,16 +30,20 @@ class CardStickerService
 
     public function downloadCardImage(Card $card): string
     {
-        $filename = $card->getWikimediaFilename();
-        $imageUrl = $this->getWikimediaImageUrl($filename);
+        $imageUrl = sprintf(
+            'https://raw.githubusercontent.com/OMerkel/Scopa/master/data/cards/Napoletane/%d%s.jpg',
+            $card->getValue(),
+            $card->getSuit()->value[0],
+        );
 
         $tmpDir = $this->projectDir . '/var/tmp/cards';
         if (!is_dir($tmpDir)) {
             mkdir($tmpDir, 0755, true);
         }
 
-        $tmpPath = $tmpDir . '/' . $card->getSuit()->value . '_' . $card->getValue() . '.jpg';
-        file_put_contents($tmpPath, $this->fetchWithRetry($imageUrl));
+        $tmpPath = $tmpDir . '/' . $card->getRef() . '.jpg';
+        $content = $this->fetchWithRetry($imageUrl);
+        file_put_contents($tmpPath, $content);
 
         return $tmpPath;
     }
@@ -193,20 +196,6 @@ class CardStickerService
         $lastSticker = end($stickers);
 
         return $lastSticker['file_id'];
-    }
-
-    private function getWikimediaImageUrl(string $filename): string
-    {
-        // Wikimedia Commons URLs follow a deterministic pattern based on MD5 of filename
-        $encoded = str_replace(' ', '_', $filename);
-        $hash = md5($encoded);
-
-        return sprintf(
-            'https://upload.wikimedia.org/wikipedia/commons/%s/%s/%s',
-            $hash[0],
-            $hash[0] . $hash[1],
-            rawurlencode($encoded),
-        );
     }
 
     private function fetchWithRetry(string $url, int $maxRetries = 5): string
