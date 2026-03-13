@@ -14,7 +14,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:stickers:create',
-    description: 'Download card images from Wikimedia and create the Telegram sticker set',
+    description: 'Download card images and create the Telegram sticker set',
 )]
 class CreateStickerSetCommand extends Command
 {
@@ -29,8 +29,7 @@ class CreateStickerSetCommand extends Command
     {
         $this
             ->addArgument('user-id', InputArgument::REQUIRED, 'Telegram user ID to own the sticker set')
-            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Delete existing sticker set and recreate')
-            ->addOption('resume', 'r', InputOption::VALUE_NONE, 'Resume: skip cards that already have a file_id');
+            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Delete existing sticker set and recreate');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -38,77 +37,36 @@ class CreateStickerSetCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $userId = (int) $input->getArgument('user-id');
 
-        $io->title('Scopa Sticker Set Creator');
-
-        // Seed cards in database
-        $io->section('Seeding cards...');
         $this->cardRepository->seedAll();
-        $io->info('40 cards seeded.');
 
-        $resume = $input->getOption('resume');
-        $setExists = $this->cardStickerService->stickerSetExists();
+        $setName = $this->cardStickerService->getStickerSetName();
+        $io->info("Sticker set: $setName");
 
-        $force = $input->getOption('force');
-
-        // Check if sticker set already exists
-        if ($setExists && !$resume) {
-            if ($force) {
-                $io->warning('Deleting existing sticker set...');
-                $this->cardStickerService->deleteStickerSet();
-                $setExists = false;
-            } else {
-                $io->error('Sticker set already exists. Use --force to recreate or --resume to continue.');
+        if ($this->cardStickerService->stickerSetExists()) {
+            if (!$input->getOption('force')) {
+                $io->error('Sticker set already exists. Use --force to recreate.');
                 return Command::FAILURE;
             }
-        }
-
-        $stickerSetName = $this->cardStickerService->getStickerSetName();
-        $io->info("Sticker set: {$stickerSetName}");
-
-        // Process all cards
-        $cards = $this->cardRepository->findBy([], ['suit' => 'ASC', 'value' => 'ASC']);
-
-        // --force: clear all file_ids and reprocess everything
-        if ($force) {
-            foreach ($cards as $card) {
-                $card->setTelegramFileId(null);
-            }
-            $this->cardRepository->getEntityManager()->flush();
-        }
-
-        $remaining = $resume
-            ? array_filter($cards, fn($c) => $c->getTelegramFileId() === null)
-            : $cards;
-
-        if ($resume) {
-            $skipped = count($cards) - count($remaining);
-            $io->info("Resuming: skipping {$skipped} already uploaded cards.");
-        }
-
-        $io->section('Processing ' . count($remaining) . ' cards...');
-        $io->progressStart(count($remaining));
-
-        $isFirst = !$setExists;
-        foreach ($remaining as $card) {
-            try {
-                $this->cardStickerService->processCard($card, $userId, $isFirst);
-                $isFirst = false;
-                $io->progressAdvance();
-            } catch (\Exception $e) {
-                $io->newLine();
-                $io->error(sprintf('Failed on %s: %s', $card->getDisplayName(), $e->getMessage()));
-                return Command::FAILURE;
-            }
-
-            // Rate limit: Wikimedia + Telegram
+            $io->warning('Deleting existing sticker set...');
+            $this->cardStickerService->deleteStickerSet();
             sleep(2);
         }
 
+        $io->info('Creating sticker set with 40 cards...');
+        $io->progressStart(40);
+
+        try {
+            $this->cardStickerService->createFullStickerSet($userId, function () use ($io) {
+                $io->progressAdvance();
+            });
+        } catch (\Exception $e) {
+            $io->progressFinish();
+            $io->error($e->getMessage());
+            return Command::FAILURE;
+        }
+
         $io->progressFinish();
-        $io->success(sprintf(
-            "Sticker set created: https://t.me/addstickers/%s",
-            $stickerSetName
-        ));
+        $io->success("Done! https://t.me/addstickers/$setName");
 
         return Command::SUCCESS;
     }

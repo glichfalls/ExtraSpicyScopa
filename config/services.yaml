@@ -16,7 +16,6 @@ services:
     App\Service\CardStickerService:
         arguments:
             $botUsername: '%telegram_bot_username%'
-            $botToken: '%env(TELEGRAM_BOT_TOKEN)%'
             $projectDir: '%kernel.project_dir%'
 
     App\Service\GameMessageService:
