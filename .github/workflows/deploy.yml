@@ -41,7 +41,6 @@ jobs:
             APP_SECRET=${{ secrets.APP_SECRET }}
             TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
             TELEGRAM_BOT_USERNAME=${{ secrets.TELEGRAM_BOT_USERNAME }}
-            OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             ENVEOF
             sed -i 's/^            //' .env.local
@@ -52,16 +51,15 @@ jobs:
             # Run database migrations
             $PHP bin/console doctrine:migrations:migrate --no-interaction
 
+            # Sync sticker set from Telegram
+            $PHP bin/console app:stickers:sync
+
             # Clear and warm up cache
             $PHP bin/console cache:clear --env=prod
             $PHP bin/console cache:warmup --env=prod
 
             # Set Telegram webhook
-            $PHP bin/console telegram:webhook:set https://sticker-bot.srv1.netlabs.dev/webhook/
-
-            # Ensure sticker upload directory exists
-            mkdir -p public/stickers
-            chmod 775 public/stickers
+            $PHP bin/console telegram:webhook:set https://scopa-bot.srv1.netlabs.dev/webhook/
 
             # Fix permissions
             chmod -R 775 var/ || true
