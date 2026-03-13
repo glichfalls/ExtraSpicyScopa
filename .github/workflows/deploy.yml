@@ -29,6 +29,13 @@ jobs:
               cd "$APP_DIR"
               git fetch origin master
               git reset --hard origin/master
+            elif [ -d "$APP_DIR" ]; then
+              # Directory exists but is not a git repo (e.g. Plesk created it)
+              git clone https://github.com/${{ github.repository }}.git "$APP_DIR.tmp"
+              shopt -s dotglob
+              mv "$APP_DIR.tmp"/* "$APP_DIR"/
+              rmdir "$APP_DIR.tmp"
+              cd "$APP_DIR"
             else
               git clone https://github.com/${{ github.repository }}.git "$APP_DIR"
               cd "$APP_DIR"
